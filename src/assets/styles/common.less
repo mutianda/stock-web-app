@@ -1,0 +1,28 @@
+/* 表格过滤栏 */
+.search-bar {
+  margin-bottom: 14px;
+  line-height: 50px;
+  &:after {
+    display: block;
+    content: '';
+    clear: both;
+  }
+  .search-item {
+    float: left;
+    margin-right: 14px;
+    & > * {
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .item-label {
+      margin-right: 14px;
+      font-size: 16px;
+    }
+    .item-input {
+      width: 160px;
+    }
+    .el-button + .el-button {
+      margin-left: 14px;
+    }
+  }
+}
