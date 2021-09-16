@@ -56,7 +56,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <common-pagination :pageObj="searchForm" @page-change="pageChange"></common-pagination>
+<!--      <common-pagination :pageObj="searchForm" @page-change="pageChange"></common-pagination>-->
     </div>
     <add-or-edit-modal ref="addOrEditForm" @getTable="getTable" />
   </div>

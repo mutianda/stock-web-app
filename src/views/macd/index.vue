@@ -4,14 +4,16 @@
       <div class="btn-item" v-for="(item,index) in btnList" :key="index">
         <el-button
                 type="danger"
-                @click="getAllKLine(item.value)"
+                :plain="currentType != item.value"
+                @click="toGetNewList(item.value)"
                 v-loading="beReady && currentType == item.value"
         >{{item.name}}</el-button
         >
       </div>
     </div>
-    <div class="card-view">
-      <ul class="infinite-list" v-infinite-scroll="load"   infinite-scroll-disabled="disabled">
+    <div class="wrapper" ref="scroll">
+      <ul class="content">
+        <li v-if="refreshing" style="color: #888">Loading...</li>
         <li
                 class="card-item"
                 v-for="(item, index) in shareList"
@@ -29,24 +31,27 @@
               <i class="el-icon-data-line echart-icon"></i>
               <div>{{ item.code }}</div>
             </div>
-            <div class="text item">开盘：{{ item.last.open }}</div>
-            <div class="text item">收盘：{{ item.last.close }}</div>
-            <div class="text item">最低： {{ item.last.low }}</div>
-            <div class="text item">最高：{{ item.last.high }}</div>
-            <div class="text item">量能： {{ item.last.volumes }}</div>
-            <div class="text item">换手率：{{ item.last.turnover }}%</div>
-            <div class="text item">成交额：{{ item.last.moneyString }}</div>
+            <div class="info-box">
+              <div class="text item">开盘：{{ item.last.open }}</div>
+              <div class="text item">收盘：{{ item.last.close }}</div>
+              <div class="text item">最低： {{ item.last.low }}</div>
+              <div class="text item">最高：{{ item.last.high }}</div>
+              <div class="text item">量能： {{ item.last.volumes }}</div>
+              <div class="text item">换手率：{{ item.last.turnover }}%</div>
+              <div class="text item">成交额：{{ item.last.moneyString }}</div>
+            </div>
+
           </el-card>
         </li>
+        <li v-if="loadMore" style="color: #888">Loading more...</li>
+        <li v-if="noMore" style="color: #888">No more...</li>
       </ul>
-      <p v-if="loading">加载中...</p>
-      <p v-if="noMore">没有更多了</p>
-
     </div>
   </div>
 </template>
 
 <script>
+  import BetterScroll from 'better-scroll'
 export default {
   name: "index",
   data() {
@@ -66,18 +71,22 @@ export default {
       dblList: [],
       beReady: false,
       searchForm: {
-        pageSize: 100,
+        pageSize: 10,
         pageNum: 1,
         total: 0
       },
-      currentType: "",
+      currentType: "dbl",
       lianbanLength: 3,
-      loading: false,
-      noMore:true,
+      loadMore: false,
+      noMore:false,
+      refreshing:false,
+      bscroll:null,
 
     };
   },
-  mounted() {},
+  mounted() {
+    this.getAllKLine()
+  },
 
   computed: {
     disabled () {
@@ -85,7 +94,7 @@ export default {
     },
     shareList() {
       const arr = this.dblList
-        .sort((a, b) => b.last.risePrecent - a.last.risePrecent)
+
         .map(item => {
           item.last.moneyString =
             item.last.money / 100000000 > 1
@@ -99,26 +108,16 @@ export default {
     }
   },
   methods: {
-    load () {
-      this.loading = true
-      console.log('load');
-      this.searchForm.pageNum++
-      this.getAllKLine(this.currentType)
-    },
-    changeSize(size) {
-      this.getAllKLine(this.currentType);
-    },
-    changeNum(Num) {
-      this.getAllKLine(this.currentType);
-    },
-    goEchart() {
-      this.$router.push({
-        name: "echarts",
-        params: {
-          kline: this.dblList,
-          index: 0
-        }
-      });
+
+    toGetNewList(val){
+      this.searchForm.pageNum = 1
+      this.refreshing  = false
+      this.noMore = false
+      this.loadMore = false
+      if(this.bscroll){
+        this.bscroll.scrollTo(0, 0);
+      }
+      this.getAllKLine(val)
     },
     lookDetail(index) {
       this.$router.push({
@@ -129,7 +128,47 @@ export default {
         }
       });
     },
-    getAllKLine(type) {
+    initScroll(){
+      if(!this.bscroll){
+        this.$nextTick(()=>{
+          this.bscroll = new BetterScroll('.wrapper',{
+            scrollY: true,
+            click: true,
+            mouseWheel:true,
+            pullDownRefresh: {
+              threshold: 10,
+              stop: 10
+            },
+            pullUpLoad: true
+          })
+          this.bscroll.on('pullingUp', () => {
+            console.log('处理上拉加载操作')
+            if(this.noMore||this.loadMore) return
+            this.loadMore = true
+            this.searchForm.pageNum++
+            this.getAllKLine(this.currentType)
+
+          })
+          this.bscroll.on('pullingDown', () => {
+            console.log('处理下拉刷新操作')
+            if(this.refreshing) return
+            this.refreshing = true
+            this.searchForm.pageNum = 1
+            this.getAllKLine(this.currentType)
+
+          })
+
+          this.bscroll.refresh()
+        })
+      }else {
+        this.$nextTick(()=>{
+          this.bscroll.refresh()
+
+        })
+      }
+
+    },
+    getAllKLine(type='dbl') {
       if (this.beReady) return;
       this.currentType = type;
       if(type.indexOf('lianban')>-1){
@@ -153,18 +192,36 @@ export default {
               item.kaishi = false;
               return item;
             });
-            this.loading = false
+            this.searchForm.pageNum = res.data.pageNum;
+            this.searchForm.pageSize = res.data.pageSize;
+            this.searchForm.total = res.data.total;
+            if(this.searchForm.pageNum==1){
+              this.dblList = [...dblList]
+
+            }else {
+              this.dblList = [...this.dblList,...dblList]
+            }
             if(!dblList.length){
               this.noMore = true
               this.searchForm.pageNum--
+            }else {
+              this.noMore = false
             }
-            this.dblList = [...this.dblList,...dblList]
+
+
+            if(this.refreshing){
+              this.refreshing = false
+              this.bscroll.finishPullDown()
+            }
+            if(this.loadMore){
+              this.loadMore = false
+              this.bscroll.finishPullUp()
+            }
+            this.initScroll()
             console.log("计算完成");
           }
 
-          this.searchForm.pageNum = res.data.pageNum;
-          this.searchForm.pageSize = res.data.pageSize;
-          this.searchForm.total = res.data.total;
+
         })
         .finally(() => {
           this.beReady = false;
@@ -347,49 +404,52 @@ export default {
       }
     }
   }
-.text {
-  font-size: 14px;
-}
 
-.item {
-  margin-bottom: 18px;
-}
 
-.clearfix:before,
-.clearfix:after {
-  display: table;
-  content: "";
-}
-.clearfix:after {
-  clear: both;
-}
-.card-view {
-  width: 100%;
-  height: calc(100% - 100px);
-  overflow-y: scroll;
-  .card-item {
-    color: #ffffff;
-    margin: 10px;
-    padding: 5px;
-    display: inline-block;
-    .card-box {
-      width: 220px;
-      color: #fff;
-      cursor: pointer;
-      &.card-green {
-        color: green;
-      }
-      &.card-red {
-        color: red;
-      }
-      .card-header {
-        .echart-icon {
-          font-size: 20px;
+
+.wrapper {
+
+  height: calc(100% - 110px);
+  padding: 5px 0;
+  overflow: hidden;
+  background-color: #efefef ;
+  .content{
+    height: auto;
+    padding: 0;
+
+    .card-item {
+      color: #ffffff;
+      padding: 5px;
+      display: inline-block;
+      .card-box {
+        width: 100%;
+        color: #fff;
+        cursor: pointer;
+        &.card-green {
+          color: green;
+        }
+        &.card-red {
+          color: red;
+        }
+        .card-header {
+          text-align: right;
+          .echart-icon {
+            font-size: 20px;
+          }
+        }
+        .info-box{
+          display: flex;
+          flex-wrap: wrap;
+          .item{
+            width: 50%;
+            margin-bottom: 10px;
+            text-align: left;
+          }
         }
       }
     }
   }
+
 }
-.box-card {
-}
+
 </style>

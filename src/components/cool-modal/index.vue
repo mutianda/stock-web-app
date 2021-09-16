@@ -67,8 +67,8 @@ export default {
         }
       },
       style: {
-        top: 500,
-        left: 500
+        top: 250,
+        left: 200
       }
     };
   },

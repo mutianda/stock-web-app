@@ -2,14 +2,14 @@
   <el-dialog
     title="新增推送"
     :visible="showAddOrEditModal"
-    width="30%"
+    width="330px"
     @close="closeModal"
   >
     <el-form
       :model="addOrEditForm"
       ref="addOrEditForm"
       inline
-      label-width="80px"
+      label-width="70px"
     >
       <el-form-item label="股票代码">
         <el-input
@@ -112,4 +112,8 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style lang="less" >
+  /deep/.el-input{
+    width: 150px !important;
+  }
+</style>

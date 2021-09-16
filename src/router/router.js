@@ -23,9 +23,16 @@ const menuRouter = [
   {
     path: "/real-time",
     name: "real-time",
-    title: "关注",
+    title: "实时",
     icon:['like','unlike'],
     component: () => import("@v/real-time")
+  },
+  {
+    path: "/like",
+    name: "like",
+    title: "关注",
+    icon:['like','unlike'],
+    component: () => import("@v/like")
   },
   {
     path: "/echarts",

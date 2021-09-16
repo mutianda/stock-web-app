@@ -1,6 +1,6 @@
 <template>
   <div class="echarts-box">
-    <coolModal :show.sync="showModal" title="操作" width="40%">
+    <coolModal :show.sync="showModal" title="操作" width="300px">
       <div v-if="shareList.length">
         <el-button
           @click="preOne"
@@ -77,50 +77,49 @@
         >
       </div>
     </coolModal>
-    <div style="margin: 10px auto" v-if="shareList.length">
-      <el-button @click="goBack" size="small" type="info">Back</el-button>
-      <el-button @click="showModal = true" size="small" type="primary"
-        >Open</el-button
-      >
-      <el-button
-        @click="preOne"
-        :disabled="shareList.length < 1 || computeIndex == 0"
-        size="small"
-        type="success"
+    <div class="btn-box" v-if="shareList.length">
+      <div class="btn-item">
+        <el-button @click="goBack" size="small" type="info">Back</el-button>
+      </div>
+      <div class="btn-item">
+        <el-button @click="showModal = true" size="small" type="primary">Open</el-button>
+      </div>
+      <div class="btn-item">
+        <el-button
+                @click="preOne"
+                :disabled="shareList.length < 1 || computeIndex == 0"
+                size="small"
+                type="success"
         >pre</el-button
-      >
-      <el-button
-        @click="nextOne"
-        :disabled="shareList.length < 1 || computeIndex == shareList.length - 1"
-        size="small"
-        type="success"
+        >
+      </div>
+      <div class="btn-item">
+        <el-button
+                @click="nextOne"
+                :disabled="shareList.length < 1 || computeIndex == shareList.length - 1"
+                size="small"
+                type="success"
         >next</el-button
-      >
+        >
+      </div>
+      <div class="btn-item">
+        <el-button @click="autoPlay" size="small" type="primary">{{
+          playing ? "start" : "stop"
+          }}</el-button>
+      </div>
 
-      <el-button @click="autoPlay" size="small" type="primary">{{
-        playing ? "start" : "stop"
-      }}</el-button>
-      <el-button type="primary" size="small"  v-for="item in klineTypeList"
-                 :key="item.value" @click="changeKline(item.value)" :plain="item.value!=currentType" :disabled="buttonLoading">{{item.label}}</el-button>
-<!--      <el-select-->
 
-<!--        v-model="klineType"-->
-<!--        placeholder="请选择"-->
-<!--        size="small"-->
-<!--        @change="changeKline"-->
-<!--      >-->
-<!--        <el-option-->
-<!--          v-for="item in klineTypeList"-->
-<!--          :key="item.value"-->
-<!--          :label="item.label"-->
-<!--          :value="item.value"-->
-<!--        >-->
-<!--        </el-option>-->
-<!--      </el-select>-->
     </div>
     <div id="chart" class="echart"></div>
     <div id="chart2" class="echart2"></div>
     <real-time-modal ref="realTime"></real-time-modal>
+    <div class="time-box">
+      <div class="btn-item" v-for="item in klineTypeList">
+
+        <el-button type="primary" size="small"
+                   :key="item.value" @click="changeKline(item.value)" :plain="item.value!=currentType" :disabled="buttonLoading">{{item.label}}</el-button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -215,10 +214,11 @@ export default {
         {
           animation: false,
           title: {
-            text: name + macd.code
+            text: name + macd.code,
+
           },
           legend: {
-            bottom: 10,
+            top: 25,
             left: "center",
             data: ["当日信息", "5均线", "10均线", "20均线", "30均线"]
           },
@@ -303,14 +303,14 @@ export default {
           },
           grid: [
             {
-              left: "10%",
-              right: "8%",
-              height: "50%"
+              left: "5%",
+              right: "5%",
+              height: "45%"
             },
             {
-              left: "10%",
-              right: "8%",
-              top: "63%",
+              left: "5%",
+              right: "5%",
+              top: "65%",
               height: "16%"
             }
           ],
@@ -685,7 +685,9 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="less">
+
+
 /deep/.el-switch__label {
   color: #fff !important;
 }
@@ -694,17 +696,43 @@ export default {
 }
 .echarts-box {
   width: 100%;
-  height: 95vh;
   background-color: black;
-}
-.echart {
-  width: 100%;
-  height: calc(100% - 300px);
+  .btn-box{
+    height: 50px;
+    display: flex;
+    flex-wrap: wrap;
+    .btn-item{
+      width: 15%;
+      padding:  5px 5px;
+      .el-button{
+        width: 100%;
+      }
+    }
+  }
+  .echart {
 
-}
-.echart2 {
-  width: 100%;
+    width: 100%;
+    height: calc(100% - 260px);
+  }
+  .echart2 {
 
-  height: 300px;
+    width: 100%;
+    height: 180px;
+  }
+  .time-box{
+    position: absolute;
+    bottom: 0;
+    height: 30px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    .btn-item{
+      flex: 1;
+      .el-button{
+        width: 100%;
+      }
+    }
+  }
 }
+
 </style>

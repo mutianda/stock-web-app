@@ -2,13 +2,9 @@
   <div
     class="page"
     id="app"
-    @mousedown="mousedown"
-    @mouseup="mouseup"
-    @touchstart="mousedown"
-    @touchend="mouseup"
   >
     <main-bar class="main-bar" v-model="showMenu"> </main-bar>
-    <main-view class="main-view"></main-view>
+    <main-view class="main-view" :class="{'has-menu':showMenu}"></main-view>
 
   </div>
 </template>
@@ -26,12 +22,18 @@ export default {
     return {
       showWsModal: false,
       tableData: [],
-      showMenu: true,
+
       mouse: {
         begin: 0,
         end: 0
       }
     };
+  },
+  computed:{
+    showMenu(){
+      return this.$route.name=='macd'||this.$route.name=='search'||this.$route.name=='real-time'||this.$route.name=='like'
+
+    }
   },
   mounted() {
     this.saveMenuRouter();
@@ -75,33 +77,33 @@ export default {
         name: "macd"
       });
     },
-    mousedown(e) {
-      if (e.type == "touchstart") {
-        const ev = e.changedTouches[0];
-        this.mouse.begin = ev.screenX;
-      }
-      if (e.type == "mousedown") {
-        if (e.clientY > 200) return;
-        this.mouse.begin = e.clientX;
-      }
-    },
-    mouseup(e) {
-      if (e.type == "touchend") {
-        const ev = e.changedTouches[0];
-        if (!ev || ev.screenY > 200) return;
-        this.mouse.end = ev.screenX;
-        if (this.mouse.end - this.mouse.begin > 100) {
-          this.showMenu = true;
-        }
-      }
-      if (e.type == "mouseup") {
-        if (e.clientY > 200) return;
-        this.mouse.end = e.clientX;
-        if (this.mouse.end - this.mouse.begin > 100) {
-          this.showMenu = true;
-        }
-      }
-    },
+    // mousedown(e) {
+    //   if (e.type == "touchstart") {
+    //     const ev = e.changedTouches[0];
+    //     this.mouse.begin = ev.screenX;
+    //   }
+    //   if (e.type == "mousedown") {
+    //     if (e.clientY > 200) return;
+    //     this.mouse.begin = e.clientX;
+    //   }
+    // },
+    // mouseup(e) {
+    //   if (e.type == "touchend") {
+    //     const ev = e.changedTouches[0];
+    //     if (!ev || ev.screenY > 200) return;
+    //     this.mouse.end = ev.screenX;
+    //     if (this.mouse.end - this.mouse.begin > 100) {
+    //       this.showMenu = true;
+    //     }
+    //   }
+    //   if (e.type == "mouseup") {
+    //     if (e.clientY > 200) return;
+    //     this.mouse.end = e.clientX;
+    //     if (this.mouse.end - this.mouse.begin > 100) {
+    //       this.showMenu = true;
+    //     }
+    //   }
+    // },
     closeModal() {
       this.showWsModal = !this.showWsModal;
     }
@@ -130,12 +132,14 @@ body {
   position: relative;
   overflow: hidden;
   .main-view {
-    flex-grow: 1;
-    padding: 10px;
+    flex: 1;
+
     box-sizing: border-box;
     width: 100%;
-    height: calc(100% - 50px);
-    overflow-y: auto;
+    height: 100%;
+    &.has-menu{
+      height: calc(100% - 50px);
+    }
   }
   .main-bar{
     width: 100%;
