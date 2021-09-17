@@ -47,13 +47,9 @@ export default {
     },
 
     realTimeStock(data) {
-      this.tableData = data.sort((a, b) => b.f170 - a.f170);
-      console.log(this.tableData, "table");
-      this.showWsModal = true;
-      const timer = setTimeout(() => {
-        this.showWsModal = false;
-        clearTimeout(timer);
-      }, 20000);
+      const tableData = data.sort((a, b) => b.f170 - a.f170);
+      this.$store.commit("common/saveRealTimeList",tableData )
+
       console.log("推送");
     },
     message(data) {
@@ -123,6 +119,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #fff;
+
 }
 </style>
 <style lang="less" scoped>
@@ -133,7 +130,6 @@ body {
   overflow: hidden;
   .main-view {
     flex: 1;
-
     box-sizing: border-box;
     width: 100%;
     height: 100%;

@@ -1,129 +1,131 @@
 <template>
-  <div class="real-time">
-    <div class="search-bar">
-      <div class="search-item">
-        <div class="item-label">名称</div>
-        <div class="item-input">
-          <el-input v-model="stockName" size="mini"></el-input>
-        </div>
-      </div>
-      <div class="search-item">
-        <div class="item-label">名称</div>
-        <div class="item-input">
-          <el-input v-model="stockName" size="mini"></el-input>
-        </div>
-      </div>
-      <div class="search-item">
-        <div class="item-label">名称</div>
-        <div class="item-input">
-          <el-input v-model="stockName" size="mini"></el-input>
-        </div>
-      </div>
-
-      <div class="search-item">
-        <el-button type="primary" @click="getTable(true)" size="mini"
-          >查询</el-button
-        >
-        <el-button type="success" @click="addOrEdit({}, false)" size="mini"
-          >新增</el-button
-        >
-      </div>
+  <div class="page-view">
+    <div class="btn-box">
+      <list-header :list="headerList"></list-header>
     </div>
-    <div class="table-box">
-      <el-table
-        :data="tableData"
-        stripe
-        class="custom-table"
-        height="90%"
-        :border="true"
-      >
-        <el-table-column prop="share_code" label="股票编码" width="180">
-        </el-table-column>
-        <el-table-column prop="share_name" label="股票名称" width="180">
-        </el-table-column>
-        <el-table-column prop="price_rise" label="突破位"> </el-table-column>
-        <el-table-column prop="price_down" label="跌破位"> </el-table-column>
-        <el-table-column prop="turn_hand" label="换手率"> </el-table-column>
-        <el-table-column prop="limit_up" label="涨幅"> </el-table-column>
-        <el-table-column label="操作">
-          <template slot-scope="{ row }">
-            <el-button @click="addOrEdit(row, true)" type="warning" size="mini"
-              >编辑</el-button
-            >
-            <el-button @click="remove(row)" type="danger" size="mini"
-              >删除</el-button
-            >
-          </template>
-        </el-table-column>
-      </el-table>
-<!--      <common-pagination :pageObj="searchForm" @page-change="pageChange"></common-pagination>-->
+    <div class="wrapper" ref="scroll"  >
+      <ul class="content">
+        <li
+                class="card-item"
+                v-for="(item, index) in shareList"
+                @click="lookDetail(index)"
+        >
+          <cool-share-card :share="item"></cool-share-card>
+        </li>
+      </ul>
     </div>
-    <add-or-edit-modal ref="addOrEditForm" @getTable="getTable" />
   </div>
 </template>
 
 <script>
-import AddOrEditModal from "@v/components/real-time-modal";
+  import BetterScroll from 'better-scroll'
+  import ListHeader from '../components/list-header'
+  export default {
+    name: "index",
+    components:{
+      ListHeader
+    },
+    data() {
+      return {
+        axios: this.$_api,
+        bscroll:null,
+        timer:null,
+        headerList:['B/S','现价','涨幅','突破价','跌破价','换手']
 
-export default {
-  name: "index",
-  components: { AddOrEditModal },
-  data() {
-    return {
-      stockName: "",
-      axios: this.$_api.realTime,
-      searchForm: {
-        pageNum: 1,
-        pageSize: 200,
-        total:0
+      };
+    },
+
+
+    computed: {
+      dblList(){
+        const table =  this.$store.state.common.realTimeTable
+        console.log(table);
+        return table
       },
-      tableData: []
-    };
-  },
-  provide() {
-    return {
-      axios: this.axios
-    };
-  },
 
-  activated() {
-    this.getTable();
-  },
-  methods: {
-    pageChange(pageSize,pageNum){
-      //咋啦
+      shareList() {
+        const arr = this.dblList
+
+        // .map(item => {
+        //   item.last.moneyString =
+        //           item.last.money / 100000000 > 1
+        //                   ? Math.floor(item.last.money / 100000000, 2) + "亿"
+        //                   : Math.floor(item.last.money / 10000, 2) + "万";
+        //
+        //   return item;
+        // });
+
+        return arr;
+      }
     },
-    getTable(flag) {
-      flag && (this.searchForm.pageNum = 1);
-      this.axios.getRealTimePush({ ...this.searchForm }).then(res => {
-        this.tableData = res.data;
-        this.searchForm.total = 1000
-      });
+
+    watch:{
+      dblList(val){
+        this.initScroll()
+      }
     },
-    addOrEdit(data = {}, isEdit) {
-      this.$refs.addOrEditForm.openModal(data, isEdit);
+    mounted() {
+      this.initScroll()
     },
-    remove(row) {
-      this.axios
-        .removeRealTimePush({ share_code: row.share_code })
-        .then(res => {
-          this.$message.success("删除成功");
-          this.getTable();
+    methods: {
+      lookDetail(index) {
+        this.$router.push({
+          name: "echarts",
+          params: {
+            shareList: this.dblList,
+            index
+          }
         });
+      },
+      initScroll(){
+        if(!this.bscroll){
+          this.$nextTick(()=>{
+            this.bscroll = new BetterScroll('.wrapper',{
+              scrollY: true,
+              click: true,
+              mouseWheel:true,
+              pullDownRefresh: false
+
+            })
+
+            this.bscroll.refresh()
+          })
+        }else {
+          this.$nextTick(()=> {
+            this.bscroll.scrollTo(0, 0);
+            this.bscroll.refresh()
+          })
+        }
+
+      },
     }
-  }
-};
+  };
 </script>
 
 <style scoped lang="less">
-.real-time {
-  display: flex;
-  flex-direction: column;
-  .search-bar {
-    color: #555;
+  .btn-box{
+    padding:  10px 10px;
   }
-  .table-box {
-    height: calc(100% - 70px);
+
+
+
+  .wrapper {
+    height: calc(100% - 94px);
+    padding: 5px 0;
+    overflow: hidden;
+    background-color: #efefef ;
+    .content{
+      height: auto;
+      padding: 0;
+      .card-item {
+        width: calc(100% - 15px);
+        color: #ffffff;
+        padding: 5px 0;
+        display: inline-block;
+
+      }
+    }
+
   }
-}
+
 </style>

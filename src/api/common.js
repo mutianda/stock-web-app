@@ -39,5 +39,12 @@ export default {
       method: "post",
       data
     });
+  },
+  searchShare(data) {
+    return request({
+      url: "searchShare", // 假地址 自行替换
+      method: "post",
+      data
+    });
   }
 };

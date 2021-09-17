@@ -4,12 +4,15 @@
       <div class="btn-item" v-for="(item,index) in btnList" :key="index">
         <el-button
                 type="danger"
+                size="mini"
                 :plain="currentType != item.value"
                 @click="toGetNewList(item.value)"
                 v-loading="beReady && currentType == item.value"
         >{{item.name}}</el-button
         >
       </div>
+      <list-header></list-header>
+
     </div>
     <div class="wrapper" ref="scroll">
       <ul class="content">
@@ -19,29 +22,7 @@
                 v-for="(item, index) in shareList"
                 @click="lookDetail(index)"
         >
-          <el-card
-                  class="card-box"
-                  :class="item.last.risePrecent > 0 ? 'card-red' : 'card-green'"
-                  @click="lookDetail(index)"
-          >
-            <div slot="header" class="clearfix card-header">
-            <span class="card-title"
-            >{{ item.name }} {{ item.last.risePrecent }}%</span
-            >
-              <i class="el-icon-data-line echart-icon"></i>
-              <div>{{ item.code }}</div>
-            </div>
-            <div class="info-box">
-              <div class="text item">开盘：{{ item.last.open }}</div>
-              <div class="text item">收盘：{{ item.last.close }}</div>
-              <div class="text item">最低： {{ item.last.low }}</div>
-              <div class="text item">最高：{{ item.last.high }}</div>
-              <div class="text item">量能： {{ item.last.volumes }}</div>
-              <div class="text item">换手率：{{ item.last.turnover }}%</div>
-              <div class="text item">成交额：{{ item.last.moneyString }}</div>
-            </div>
-
-          </el-card>
+          <cool-share-card :share="item"></cool-share-card>
         </li>
         <li v-if="loadMore" style="color: #888">Loading more...</li>
         <li v-if="noMore" style="color: #888">No more...</li>
@@ -52,8 +33,12 @@
 
 <script>
   import BetterScroll from 'better-scroll'
+  import ListHeader from '../components/list-header'
 export default {
   name: "index",
+  components:{
+    ListHeader
+  },
   data() {
     return {
       axios: this.$_api,
@@ -71,7 +56,7 @@ export default {
       dblList: [],
       beReady: false,
       searchForm: {
-        pageSize: 10,
+        pageSize: 100,
         pageNum: 1,
         total: 0
       },
@@ -89,6 +74,7 @@ export default {
   },
 
   computed: {
+
     disabled () {
       return this.loading || this.noMore
     },
@@ -108,7 +94,15 @@ export default {
     }
   },
   methods: {
-
+    lookDetail(index) {
+      this.$router.push({
+        name: "echarts",
+        params: {
+          shareList: this.dblList,
+          index
+        }
+      });
+    },
     toGetNewList(val){
       this.searchForm.pageNum = 1
       this.refreshing  = false
@@ -119,15 +113,7 @@ export default {
       }
       this.getAllKLine(val)
     },
-    lookDetail(index) {
-      this.$router.push({
-        name: "echarts",
-        params: {
-          shareList: this.dblList,
-          index
-        }
-      });
-    },
+
     initScroll(){
       if(!this.bscroll){
         this.$nextTick(()=>{
@@ -163,6 +149,7 @@ export default {
       }else {
         this.$nextTick(()=>{
           this.bscroll.refresh()
+          this.bscroll.scrollTo(0, 0);
 
         })
       }
@@ -408,45 +395,19 @@ export default {
 
 
 .wrapper {
-
-  height: calc(100% - 110px);
+  height: calc(100% - 114px);
   padding: 5px 0;
   overflow: hidden;
   background-color: #efefef ;
   .content{
     height: auto;
     padding: 0;
-
     .card-item {
+      width: calc(100% - 15px);
       color: #ffffff;
-      padding: 5px;
+      padding: 5px 0;
       display: inline-block;
-      .card-box {
-        width: 100%;
-        color: #fff;
-        cursor: pointer;
-        &.card-green {
-          color: green;
-        }
-        &.card-red {
-          color: red;
-        }
-        .card-header {
-          text-align: right;
-          .echart-icon {
-            font-size: 20px;
-          }
-        }
-        .info-box{
-          display: flex;
-          flex-wrap: wrap;
-          .item{
-            width: 50%;
-            margin-bottom: 10px;
-            text-align: left;
-          }
-        }
-      }
+
     }
   }
 

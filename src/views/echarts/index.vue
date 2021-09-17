@@ -5,7 +5,7 @@
         <el-button
           @click="preOne"
           :disabled="shareList.length < 1 || computeIndex == 0"
-          size="small"
+          size="mini"
           type="success"
           >上一个</el-button
         >
@@ -14,26 +14,26 @@
           :disabled="
             shareList.length < 1 || computeIndex == shareList.length - 1
           "
-          size="small"
+          size="mini"
           type="success"
           >下一个</el-button
         >
-        <el-button @click="autoPlay" size="small" type="primary">{{
+        <el-button @click="autoPlay" size="mini" type="primary">{{
           playing ? "播放开启" : "播放暂定"
         }}</el-button>
         <el-slider v-model="timeLength" show-input> </el-slider>
-        <el-button type="success" size="small" @click="addRealTime"
+        <el-button type="success" size="mini" @click="addRealTime"
           >定制推送</el-button
         >
         <el-button
           type="success"
-          size="small"
+          size="mini"
           @click="changeKline()"
           >刷新</el-button
         >
         <el-button
           @click="markTxt"
-          size="small"
+          size="mini"
           style="margin-left: 20px"
           type="warning"
           >生成txt</el-button
@@ -79,16 +79,16 @@
     </coolModal>
     <div class="btn-box" v-if="shareList.length">
       <div class="btn-item">
-        <el-button @click="goBack" size="small" type="info">Back</el-button>
+        <el-button @click="goBack" size="mini" type="info">Back</el-button>
       </div>
       <div class="btn-item">
-        <el-button @click="showModal = true" size="small" type="primary">Open</el-button>
+        <el-button @click="showModal = true" size="mini" type="primary">Open</el-button>
       </div>
       <div class="btn-item">
         <el-button
                 @click="preOne"
                 :disabled="shareList.length < 1 || computeIndex == 0"
-                size="small"
+                size="mini"
                 type="success"
         >pre</el-button
         >
@@ -97,13 +97,13 @@
         <el-button
                 @click="nextOne"
                 :disabled="shareList.length < 1 || computeIndex == shareList.length - 1"
-                size="small"
+                size="mini"
                 type="success"
         >next</el-button
         >
       </div>
       <div class="btn-item">
-        <el-button @click="autoPlay" size="small" type="primary">{{
+        <el-button @click="autoPlay" size="mini" type="primary">{{
           playing ? "start" : "stop"
           }}</el-button>
       </div>
@@ -116,7 +116,7 @@
     <div class="time-box">
       <div class="btn-item" v-for="item in klineTypeList">
 
-        <el-button type="primary" size="small"
+        <el-button type="primary" size="mini"
                    :key="item.value" @click="changeKline(item.value)" :plain="item.value!=currentType" :disabled="buttonLoading">{{item.label}}</el-button>
       </div>
     </div>

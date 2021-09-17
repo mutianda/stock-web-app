@@ -1,17 +1,11 @@
 <template>
 	<div class="page-view">
 		<div class="btn-box">
-			<div class="btn-item" v-for="(item,index) in btnList" :key="index">
-				<el-button
-						type="danger"
-						:plain="currentType != item.value"
-						@click="toGetNewList(item.value)"
-						v-loading="beReady && currentType == item.value"
-				>{{item.name}}</el-button
-				>
-			</div>
+			<el-input v-model="searchForm.keyword" prefix-icon="el-icon-search" placeholder="请输入内容" @input="searchShare"></el-input>
+			<list-header></list-header>
+
 		</div>
-		<div class="wrapper" ref="scroll">
+		<div class="wrapper" ref="scroll"  v-loading="showLoading">
 			<ul class="content">
 				<li v-if="refreshing" style="color: #888">Loading...</li>
 				<li
@@ -19,32 +13,8 @@
 						v-for="(item, index) in shareList"
 						@click="lookDetail(index)"
 				>
-					<el-card
-							class="card-box"
-							:class="item.last.risePrecent > 0 ? 'card-red' : 'card-green'"
-							@click="lookDetail(index)"
-					>
-						<div slot="header" class="clearfix card-header">
-            <span class="card-title"
-            >{{ item.name }} {{ item.last.risePrecent }}%</span
-            >
-							<i class="el-icon-data-line echart-icon"></i>
-							<div>{{ item.code }}</div>
-						</div>
-						<div class="info-box">
-							<div class="text item">开盘：{{ item.last.open }}</div>
-							<div class="text item">收盘：{{ item.last.close }}</div>
-							<div class="text item">最低： {{ item.last.low }}</div>
-							<div class="text item">最高：{{ item.last.high }}</div>
-							<div class="text item">量能： {{ item.last.volumes }}</div>
-							<div class="text item">换手率：{{ item.last.turnover }}%</div>
-							<div class="text item">成交额：{{ item.last.moneyString }}</div>
-						</div>
-
-					</el-card>
+					<cool-share-card :share="item"></cool-share-card>
 				</li>
-				<li v-if="loadMore" style="color: #888">Loading more...</li>
-				<li v-if="noMore" style="color: #888">No more...</li>
 			</ul>
 		</div>
 	</div>
@@ -52,46 +22,35 @@
 
 <script>
 	import BetterScroll from 'better-scroll'
+	import ListHeader from '../components/list-header'
 	export default {
 		name: "index",
+		components:{
+			ListHeader
+		},
 		data() {
 			return {
 				axios: this.$_api,
-				macd: "",
-				btnList:[
-					{name:'全部',value:'all'},
-					{name:'初底背离',value:'chudbl'},
-					{name:'超背离',value:'chaodbl'},
-					{name:'底背离连扳',value:'dbllianban-'},
-					{name:'底背离',value:'dbl'},
-					{name:'所有连扳',value:'alllianban-'},
-				],
-				lineList: [],
-				macdList: [],
 				dblList: [],
 				beReady: false,
 				searchForm: {
-					pageSize: 10,
-					pageNum: 1,
-					total: 0
+					keyword:''
 				},
 				currentType: "dbl",
 				lianbanLength: 3,
-				loadMore: false,
-				noMore:false,
 				refreshing:false,
 				bscroll:null,
+				timer:null,
+				showLoading:false
 
 			};
 		},
 		mounted() {
-			this.getAllKLine()
+
 		},
 
 		computed: {
-			disabled () {
-				return this.loading || this.noMore
-			},
+
 			shareList() {
 				const arr = this.dblList
 
@@ -109,12 +68,19 @@
 		},
 		methods: {
 
-			toGetNewList(val){
-				this.searchForm.pageNum = 1
+			searchShare(){
+				if(!this.searchForm.keyword)return
 				this.refreshing  = false
-				this.noMore = false
-				this.loadMore = false
-				this.getAllKLine(val)
+				if(this.timer){
+					clearTimeout(this.timer)
+					this.timer = null
+				}
+				this.timer = setTimeout(()=>{
+					this.getSearchShare()
+					clearTimeout(this.timer)
+					this.timer = null
+
+				},1000)
 			},
 			lookDetail(index) {
 				this.$router.push({
@@ -132,53 +98,41 @@
 							scrollY: true,
 							click: true,
 							mouseWheel:true,
-							pullDownRefresh: {
-								threshold: 10,
-								stop: 10
-							},
-							pullUpLoad: !this.noMore
-						})
-						this.bscroll.on('pullingUp', () => {
-							console.log('处理上拉加载操作')
-							if(this.noMore||this.loadMore) return
-							this.loadMore = true
-							this.searchForm.pageNum++
-							this.getAllKLine(this.currentType)
+							pullDownRefresh: false
 
 						})
-						this.bscroll.on('pullingDown', () => {
-							console.log('处理下拉刷新操作')
-							if(this.refreshing) return
-							this.refreshing = true
-							this.searchForm.pageNum = 1
-							this.getAllKLine(this.currentType)
 
-						})
+						// this.bscroll.on('pullingDown', () => {
+						// 	console.log('处理下拉刷新操作')
+						// 	if(this.refreshing) return
+						// 	this.refreshing = true
+						// 	this.getSearchShare()
+						//
+						// })
 
 						this.bscroll.refresh()
 					})
 				}else {
-					this.bscroll.refresh()
+					this.$nextTick(()=> {
+						this.bscroll.scrollTo(0, 0);
+						this.bscroll.refresh()
+					})
 				}
 
 			},
-			getAllKLine(type='dbl') {
-				if (this.beReady) return;
-				this.currentType = type;
-				if(type.indexOf('lianban')>-1){
-					type = type+3
-				}
-				this.beReady = true;
-				// this.beReady= false
+			getSearchShare() {
+				this.showLoading = true
+				if(!this.searchForm.keyword)return
 				this.axios.common
-				.getAllKLine({
-					type,
-					pageSize: this.searchForm.pageSize,
-					pageNum: this.searchForm.pageNum
+				.searchShare({
+
+					...this.searchForm
+
 				})
 				.then(res => {
+					this.showLoading = false
 					if (res.data) {
-						const dblList = res.data.list.map(item => {
+						const dblList = res.data.map(item => {
 							item.qs = true;
 							item.dbqd = false;
 							item.tpzs = false;
@@ -186,27 +140,14 @@
 							item.kaishi = false;
 							return item;
 						});
-						this.searchForm.pageNum = res.data.pageNum;
-						this.searchForm.pageSize = res.data.pageSize;
-						this.searchForm.total = res.data.total;
-						if(!dblList.length){
-							this.noMore = true
-							this.searchForm.pageNum--
-						}else {
-							this.noMore = false
-						}
-						if(this.searchForm.pageNum==1){
-							this.dblList = [...dblList]
-						}else {
-							this.dblList = [...this.dblList,...dblList]
-						}
+
+
+
+						this.dblList = [...dblList]
+
 						if(this.refreshing){
 							this.refreshing = false
 							this.bscroll.finishPullDown()
-						}
-						if(this.loadMore){
-							this.loadMore = false
-							this.bscroll.finishPullUp()
 						}
 						this.initScroll()
 						console.log("计算完成");
@@ -385,59 +326,25 @@
 
 <style scoped lang="less">
 	.btn-box{
-		display: flex;
-		flex-wrap: wrap;
-		.btn-item{
-			width: 27%;
-			padding:  5px 10px;
-			.el-button{
-				width: 100%;
-			}
-		}
+		padding:  10px 10px;
 	}
 
 
 
 	.wrapper {
-
-		height: calc(100% - 110px);
+		height: calc(100% - 94px);
 		padding: 5px 0;
 		overflow: hidden;
 		background-color: #efefef ;
 		.content{
 			height: auto;
 			padding: 0;
-
 			.card-item {
+				width: calc(100% - 15px);
 				color: #ffffff;
-				padding: 5px;
+				padding: 5px 0;
 				display: inline-block;
-				.card-box {
-					width: 100%;
-					color: #fff;
-					cursor: pointer;
-					&.card-green {
-						color: green;
-					}
-					&.card-red {
-						color: red;
-					}
-					.card-header {
-						text-align: right;
-						.echart-icon {
-							font-size: 20px;
-						}
-					}
-					.info-box{
-						display: flex;
-						flex-wrap: wrap;
-						.item{
-							width: 50%;
-							margin-bottom: 10px;
-							text-align: left;
-						}
-					}
-				}
+
 			}
 		}
 

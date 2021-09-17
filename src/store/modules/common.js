@@ -5,8 +5,13 @@ export default {
 	namespaced: true,
 
 	state: {
-		routerList:[]
+		routerList:[],
+		likeMap:{
+
+		},
+		realTimeTable:[]
 	},
+
 
 	getters: {
 	},
@@ -14,7 +19,18 @@ export default {
 	mutations: {
 		saveRouter(state,routerList) {
 			state.routerList = routerList
-		}
+		},
+		saveLikeMap(state,obj) {
+			const map = localStorage.getItem('likeMap')
+			const likeMap = map?JSON.parse(map):{}
+			likeMap[obj.code] = obj.data
+			state.likeMap = likeMap
+			localStorage.setItem('likeMap',JSON.stringify(likeMap))
+		},
+		saveRealTimeList(state,list){
+			state.realTimeTable = list
+		},
+
 
 	},
 
