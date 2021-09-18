@@ -24,7 +24,7 @@ const menuRouter = [
     path: "/real-time",
     name: "real-time",
     title: "实时",
-    icon:['like','unlike'],
+    icon:['warning','unwarning'],
     component: () => import("@v/real-time")
   },
   {

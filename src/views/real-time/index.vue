@@ -4,15 +4,15 @@
       <list-header :list="headerList"></list-header>
     </div>
     <div class="wrapper" ref="scroll"  >
-      <ul class="content">
-        <li
+      <div class="content">
+        <div
                 class="card-item"
                 v-for="(item, index) in shareList"
                 @click="lookDetail(index)"
         >
           <cool-share-card :share="item"></cool-share-card>
-        </li>
-      </ul>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -104,23 +104,22 @@
 
 <style scoped lang="less">
   .btn-box{
-    padding:  10px 10px;
+    padding:  5px 10px;
   }
 
-
-
   .wrapper {
-    height: calc(100% - 94px);
-    padding: 5px 0;
+    height: calc(100% - 36px);
+    padding: 5px;
     overflow: hidden;
     background-color: #efefef ;
     .content{
       height: auto;
       padding: 0;
+      width: 100%;
       .card-item {
-        width: calc(100% - 15px);
+        width: 100%;
         color: #ffffff;
-        padding: 5px 0;
+        padding: 3px 0;
         display: inline-block;
 
       }

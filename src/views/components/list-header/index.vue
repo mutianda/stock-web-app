@@ -21,7 +21,7 @@
 <style scoped lang="less">
 	.info-box{
 		width: 100%;
-		font-size: 10px;
+		font-size: 12px;
 		overflow-x: scroll;
 		display: flex;
 		flex-wrap: wrap;

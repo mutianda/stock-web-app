@@ -119,6 +119,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #fff;
+  background-color: #111111;
+  opacity: .2;
 
 }
 </style>
@@ -142,7 +144,7 @@ body {
     position: absolute;
     bottom: 0;
     height: 50px;
-    background-color: #eee;
+    background-color: #111111;
   }
 }
 </style>

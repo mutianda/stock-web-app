@@ -59,7 +59,6 @@ export default {
     align-items: center;
     justify-items: center;
     color: #888;
-
     .menu-item{
       flex: 1;
       &.active-menu{
@@ -67,12 +66,12 @@ export default {
 
       }
       .menu-icon{
-        width: 25px;
-        height: 25px;
+        width: 22px;
+        height: 22px;
         margin: 0 auto;
       }
       .menu-name{
-        font-size: 12px;
+        font-size: 8px;
       }
 
     }

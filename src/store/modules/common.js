@@ -1,14 +1,13 @@
 
-
+const map = localStorage.getItem('likeMap')
+const likeMap = map?JSON.parse(map):{}
 export default {
 	// 是否时被其它页面调用
 	namespaced: true,
 
 	state: {
 		routerList:[],
-		likeMap:{
-
-		},
+		likeMap,
 		realTimeTable:[]
 	},
 

@@ -15,18 +15,18 @@
 
     </div>
     <div class="wrapper" ref="scroll">
-      <ul class="content">
-        <li v-if="refreshing" style="color: #888">Loading...</li>
-        <li
+      <div class="content">
+        <div v-if="refreshing" style="color: #888">Loading...</div>
+        <div
                 class="card-item"
                 v-for="(item, index) in shareList"
                 @click="lookDetail(index)"
         >
           <cool-share-card :share="item"></cool-share-card>
-        </li>
-        <li v-if="loadMore" style="color: #888">Loading more...</li>
-        <li v-if="noMore" style="color: #888">No more...</li>
-      </ul>
+        </div>
+        <div v-if="loadMore" style="color: #888">Loading more...</div>
+        <div v-if="noMore" style="color: #888">No more...</div>
+      </div>
     </div>
   </div>
 </template>
@@ -381,8 +381,10 @@ export default {
 
 <style scoped lang="less">
   .btn-box{
+    height: 100px;
     display: flex;
     flex-wrap: wrap;
+
     .btn-item{
       width: 27%;
       padding:  5px 10px;
@@ -395,17 +397,17 @@ export default {
 
 
 .wrapper {
-  height: calc(100% - 114px);
-  padding: 5px 0;
+  height: calc(100% - 101px);
   overflow: hidden;
-  background-color: #efefef ;
+  background-color: #111 ;
   .content{
     height: auto;
-    padding: 0;
+    padding: 5px 0;
+    width: 100%;
     .card-item {
-      width: calc(100% - 15px);
+      width: 100%;
       color: #ffffff;
-      padding: 5px 0;
+      padding: 3px 0;
       display: inline-block;
 
     }

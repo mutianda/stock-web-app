@@ -1,21 +1,21 @@
 <template>
 	<div class="page-view">
 		<div class="btn-box">
-			<el-input v-model="searchForm.keyword" prefix-icon="el-icon-search" placeholder="请输入内容" @input="searchShare"></el-input>
+			<el-input v-model="searchForm.keyword" prefix-icon="el-icon-search" placeholder="请输入内容" @input="searchShare" size="small"></el-input>
 			<list-header></list-header>
 
 		</div>
 		<div class="wrapper" ref="scroll"  v-loading="showLoading">
-			<ul class="content">
-				<li v-if="refreshing" style="color: #888">Loading...</li>
-				<li
+			<div class="content">
+				<div v-if="refreshing" style="color: #888">Loading...</div>
+				<div
 						class="card-item"
 						v-for="(item, index) in shareList"
 						@click="lookDetail(index)"
 				>
 					<cool-share-card :share="item"></cool-share-card>
-				</li>
-			</ul>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -326,23 +326,22 @@
 
 <style scoped lang="less">
 	.btn-box{
-		padding:  10px 10px;
+		padding:  10px 10px 5px 10px;
 	}
 
-
-
 	.wrapper {
-		height: calc(100% - 94px);
-		padding: 5px 0;
+		height: calc(100% - 86px);
+		padding: 5px;
 		overflow: hidden;
 		background-color: #efefef ;
 		.content{
 			height: auto;
 			padding: 0;
+			width: 100%;
 			.card-item {
-				width: calc(100% - 15px);
+				width: 100%;
 				color: #ffffff;
-				padding: 5px 0;
+				padding: 3px 0;
 				display: inline-block;
 
 			}
