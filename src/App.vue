@@ -2,8 +2,12 @@
   <div
     class="page"
     id="app"
+    @mousedown="mousedown"
+    @mouseup="mouseup"
+    @touchstart="mousedown"
+    @touchend="mouseup"
   >
-    <main-bar class="main-bar" v-model="showMenu"> </main-bar>
+    <main-bar class="main-bar" v-model="showMenu"  @touchend="mouseup"> </main-bar>
     <main-view class="main-view" :class="{'has-menu':showMenu}"></main-view>
 
   </div>
@@ -36,26 +40,31 @@ export default {
     }
   },
   mounted() {
+
     this.saveMenuRouter();
+    if(!this.user||!this.user.email){
+      this.$router.push({name:'login'})
+      return
+    }
+    this.getLikeList()
+    this.getRealTimeList()
   },
   sockets: {
     connect() {
-      this.id = this.$socket.id;
-
-      this.$socket.emit("login", { userid: "111", username: "ssssss" });
+      this.$socket.emit("login", { id:this.$socket.id,email: this.user.email});
       // 监听connect事件
     },
 
     realTimeStock(data) {
       const tableData = data.sort((a, b) => b.f170 - a.f170);
-      this.$store.commit("common/saveRealTimeList",tableData )
+      this.$store.commit("common/saveRealTimeTable",tableData )
 
       console.log("推送");
     },
     message(data) {
       // 监听message事件，方法是后台定义和提供的
-
-      this.$message.info(data.content);
+      console.warn(data,'message');
+      this.$message.info(data);
     }
   },
   methods: {
@@ -73,36 +82,32 @@ export default {
         name: "macd"
       });
     },
-    // mousedown(e) {
-    //   if (e.type == "touchstart") {
-    //     const ev = e.changedTouches[0];
-    //     this.mouse.begin = ev.screenX;
-    //   }
-    //   if (e.type == "mousedown") {
-    //     if (e.clientY > 200) return;
-    //     this.mouse.begin = e.clientX;
-    //   }
-    // },
-    // mouseup(e) {
-    //   if (e.type == "touchend") {
-    //     const ev = e.changedTouches[0];
-    //     if (!ev || ev.screenY > 200) return;
-    //     this.mouse.end = ev.screenX;
-    //     if (this.mouse.end - this.mouse.begin > 100) {
-    //       this.showMenu = true;
-    //     }
-    //   }
-    //   if (e.type == "mouseup") {
-    //     if (e.clientY > 200) return;
-    //     this.mouse.end = e.clientX;
-    //     if (this.mouse.end - this.mouse.begin > 100) {
-    //       this.showMenu = true;
-    //     }
-    //   }
-    // },
-    closeModal() {
-      this.showWsModal = !this.showWsModal;
-    }
+
+    mousedown(e) {
+      if (e.type == "touchstart") {
+        const ev = e.changedTouches[0];
+        this.mouse.begin = ev.screenX;
+      }
+      if (e.type == "mousedown") {
+        this.mouse.begin = e.clientX;
+      }
+    },
+    mouseup(e) {
+      if (e.type == "touchend") {
+        const ev = e.changedTouches[0];
+        this.mouse.end = ev.screenX;
+        if (this.mouse.end - this.mouse.begin > 100) {
+          // location.reload()
+        }
+      }
+      if (e.type == "mouseup") {
+        if (e.clientY > 200) return;
+        this.mouse.end = e.clientX;
+        if (this.mouse.end - this.mouse.begin > 100) {
+          // location.reload()
+        }
+      }
+    },
   }
 };
 </script>
@@ -120,8 +125,7 @@ body {
   text-align: center;
   color: #fff;
   background-color: #111111;
-  opacity: .2;
-
+  opacity: .3;
 }
 </style>
 <style lang="less" scoped>

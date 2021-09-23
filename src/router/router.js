@@ -43,6 +43,12 @@ const menuRouter = [
   },
 
 
+
 ];
-const defaultRouter = [];
+const defaultRouter = [  {
+  path: "/login",
+  name: "login",
+  title: "登陆",
+  component: () => import("@v/login")
+},];
 export { menuRouter, defaultRouter };

@@ -65,7 +65,7 @@ export default {
       isEdit: false,
       axios: this.$_api.realTime,
       addOrEditForm: {
-        user_id: 1,
+        email: '',
         share_code: "",
         share_name: "",
         price_rise: "",
@@ -88,7 +88,7 @@ export default {
             this.addOrEditForm
           ).then(res => {
             this.$message.success("操作成功");
-            this.$emit("getTable");
+            this.$store.dispatch('common/getRealTimePush')
             this.closeModal();
           });
         } else {
@@ -99,7 +99,7 @@ export default {
     closeModal() {
       this.showAddOrEditModal = false;
       this.addOrEditForm = {
-        user_id: 1,
+        email: '',
         share_code: "",
         share_name: "",
         price_rise: "",

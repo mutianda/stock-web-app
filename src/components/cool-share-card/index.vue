@@ -1,37 +1,21 @@
 <template>
 	<el-card
 			class="card-box"
-			:class="share.desc == 'B' ? 'card-red' : 'card-green'"
+
 	>
-		<div slot="header" class="clearfix card-header">
-			<i @click.stop="removeListen(share)" v-if="share.lastPrice"  class="el-icon-message-solid" style="padding-right:30px;font-size: 17px" :style="{color:'#e08214'}"></i>
-            <span class="card-title"
-            >{{ share.name }} {{ share.lastRise }}%</span
-            >
-			<i class="el-icon-data-line echart-icon"></i>
-			<span class="card-title">
-				{{ share.code }}
-				<i @click.stop="doLike(share)" class="el-icon-star-on" style="padding-left:30px;font-size: 22px" :style="{color:likeMap[share.code]?'#e08214':'#999'}"></i></span>
-		</div>
-		<div class="info-box" v-if="!share.lastPrice">
+		<div class="info-box"  :style="{color: share.last.risePrecent > 0 ? 'red' : 'green'}" >
 
-			<div class="text item">{{ share.last.open }}元</div>
-			<div class="text item">{{ share.last.high }}元</div>
-			<div class="text item">{{ share.last.low }}元</div>
-			<div class="text item">{{ share.last.close }}元</div>
-			<div class="text item">{{ share.last.turnover }}%</div>
-			<div class="text item">{{ share.last.moneyString }}</div>
+			<div   style="width: 100px;padding: 4px 5px;text-align: center">
+				<i @click.stop="removeListen(share)"   class="el-icon-message-solid" style=";font-size: 17px;float: left" :style="{color:realTimeMap[share.code]?'#e08214':'#999'}">
+				</i>
+				<span>{{ share.name }}</span>
+				<i @click.stop="doLike(share)" class="el-icon-star-on" style="font-size: 22px;padding:0 4px;float: right" :style="{color:likeMap[share.code]?'#e08214':'#999'}"></i>
 
+			</div>
+			<div class="text item" v-for="it in list" :key="it.code">
+				{{ stock[it.value] }}{{it.tis||''}}
+			</div>
 		</div>
-		<div class="info-box" v-else>
-			<div class="text item" style="font-size: 15px">{{share.desc}}</div>
-			<div class="text item" :style="{color: share.f170 > 0 ? 'red' : 'green'}">{{ share.lastPrice }}元</div>
-			<div class="text item" :style="{color: share.f170 > 0 ? 'red' : 'green'}">{{ share.lastRise }}%</div>
-			<div class="text item">{{share.price_rise}}元</div>
-			<div class="text item">{{share.price_down}}元</div>
-			<div class="text item">{{share.f168}}%</div>
-		</div>
-
 	</el-card>
 </template>
 
@@ -44,34 +28,80 @@
 				default(){
 					return {}
 				}
+			},
+			list:{
+				type:Array,
+				default(){
+					return [
+						{value: 'desc',label:'B/S',},
+						{value: 'close',label:'现价',},
+						{value: 'risePrecent',label:'涨幅',tis:'%'},
+						{value: 'like_rise',label:'关注价',},
+						{value: 'price_rise',label:'突破价',},
+						{value: 'price_down',label:'跌破价',},
+						{value: 'open',label:'开盘',},
+						{value: 'high',label:'最高',},
+						{value: 'low',label:'最低',},
+						{value: 'turnover',label:'换手',tis:'%'},
+						{value: 'moneyString',label:'成交量',}
+					]
+				}
 			}
 		},
+
 		data(){
 			return {
 
 			}
 		},
 		computed:{
-			likeMap(){
-				const likemap = this.$store.state.common.likeMap
-				return  likemap
-			},
+			stock(){
+				return {
+					...this.share,
+					...this.share.last
+				}
+			}
 		},
 		methods:{
 			removeListen(item){
-				this.$_api.realTime
-				.removeRealTimePush({ share_code: item.share_code })
-				.then(res => {
+				if(this.realTimeMap[item.code]){
+					const data ={
+						id:this.realTimeMap[item.code].id
+					}
+					this.$_api.realTime
+					.removeRealTimePush(data)
+					.then(res => {
+						this.$store.dispatch('common/getRealTimePush')
+					});
+				}
 
-				});
 			},
 			doLike(item){
 				if(this.likeMap[item.code]){
-					this.$store.commit("common/saveLikeMap", {code:item.code,data:null});
+					const data ={
+						id:this.likeMap[item.code].id
+					}
+					this.$_api.shareLike.deleteLike(data).then(res=>{
+						if(res.code==200){
+							this.$store.dispatch('common/getLikeList')
+						}
+					})
 				}else {
-					this.$store.commit("common/saveLikeMap", {code:item.code,data:{code:item.code,name:item.name,last:item.last}});
-
+					const {last,share_code,name} = item
+					const data ={
+						code:share_code,name,
+						price:last.close,
+						email:this.user.email,
+						time:(new Date()).getTime()
+					}
+					this.$_api.shareLike.addLike(data).then(res=>{
+						if(res.code==200){
+							this.$store.dispatch('common/getLikeList')
+						}
+					})
 				}
+
+
 			},
 
 		}
@@ -92,6 +122,8 @@
 		overflow-x: scroll;
 		display: flex;
 		flex-wrap: wrap;
+		align-items: center;
+		justify-items: center;
 		.item{
 			flex: 1;
 			padding: 4px 5px;

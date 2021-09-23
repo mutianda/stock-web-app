@@ -25,12 +25,15 @@
         <el-button type="success" size="mini" @click="addRealTime"
           >定制推送</el-button
         >
+
         <el-button
           type="success"
           size="mini"
           @click="changeKline()"
           >刷新</el-button
         >
+
+
         <el-button
           @click="markTxt"
           size="mini"
@@ -107,6 +110,7 @@
           playing ? "start" : "stop"
           }}</el-button>
       </div>
+
 
 
     </div>
@@ -571,7 +575,7 @@ export default {
         share_name: this.currentShare.name,
         price_rise,
         price_down,
-        user_id: 1
+        email: this.user.email,
       };
       this.$refs.realTime.openModal(data, false);
     },

@@ -8,7 +8,8 @@ import store from "./store";
 import Element from "element-ui";
 import "element-ui/lib/theme-chalk/index.css";
 // 通用样式类
-
+import mixin from './mixin'
+Vue.mixin(mixin)
 Vue.use(Element);
 Vue.config.productionTip = false;
 import VueSocketio from "vue-socket.io";

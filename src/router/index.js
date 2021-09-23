@@ -23,7 +23,26 @@ export const routerCreator = () => {
 const router = routerCreator();
 
 router.beforeEach((to, from, next) => {
-  next();
+  const user = localStorage.getItem('user')?JSON.parse(localStorage.getItem('user')):{}
+  const loginRouteName = 'login'
+
+  if(!user||!user.email){
+    if (to.name === loginRouteName) {
+      return next()
+    }else {
+      return next({
+      name: 'login'
+    })
+    }
+
+  }else {
+    if (to.name === loginRouteName) {
+      return next({name:'macd'})
+    }else {
+      next()
+    }
+
+  }
 });
 
 router.afterEach(to => {

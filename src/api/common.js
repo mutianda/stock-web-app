@@ -46,5 +46,15 @@ export default {
       method: "post",
       data
     });
-  }
+  },
+  login(data){
+    return request({
+      url: "login", // 假地址 自行替换
+      method: "post",
+      data
+    });
+  },
+
+
+
 };

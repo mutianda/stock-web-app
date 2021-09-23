@@ -11,21 +11,25 @@
         >{{item.name}}</el-button
         >
       </div>
-      <list-header></list-header>
-
     </div>
     <div class="wrapper" ref="scroll">
       <div class="content">
-        <div v-if="refreshing" style="color: #888">Loading...</div>
-        <div
-                class="card-item"
-                v-for="(item, index) in shareList"
-                @click="lookDetail(index)"
-        >
-          <cool-share-card :share="item"></cool-share-card>
+        <div v-if="refreshing" style="color: #FFF;text-align: left">Loading...</div>
+        <list-header :list="headerList" class="list-head"></list-header>
+        <div class="card-list">
+
+          <div
+                  class="card-item"
+                  v-for="(item, index) in shareList"
+                  @click="lookDetail(index)"
+          >
+            <cool-share-card :share="item" :list="headerList"></cool-share-card>
+          </div>
+          <div v-if="loadMore" style="color: #FFF;text-align: left">Loading more...</div>
+          <div v-if="noMore" style="color: #FFF;text-align: left">No more...</div>
         </div>
-        <div v-if="loadMore" style="color: #888">Loading more...</div>
-        <div v-if="noMore" style="color: #888">No more...</div>
+
+
       </div>
     </div>
   </div>
@@ -60,16 +64,25 @@ export default {
         pageNum: 1,
         total: 0
       },
-      currentType: "dbl",
+      currentType: "chudbl",
       lianbanLength: 3,
       loadMore: false,
       noMore:false,
       refreshing:false,
       bscroll:null,
+      headerList:[
+        {value: 'close',label:'现价',},
+        {value: 'risePrecent',label:'涨幅',tis:'%'},
+        {value: 'open',label:'开盘',},
+        {value: 'high',label:'最高',},
+        {value: 'low',label:'最低',},
+        {value: 'turnover',label:'换手',tis:'%'},
+        {value: 'moneyString',label:'成交量',}
+      ],
 
     };
   },
-  mounted() {
+  activated() {
     this.getAllKLine()
   },
 
@@ -98,7 +111,7 @@ export default {
       this.$router.push({
         name: "echarts",
         params: {
-          shareList: this.dblList,
+          shareList: this.shareList,
           index
         }
       });
@@ -119,43 +132,62 @@ export default {
         this.$nextTick(()=>{
           this.bscroll = new BetterScroll('.wrapper',{
             scrollY: true,
+            scrollX : true,
             click: true,
             mouseWheel:true,
             pullDownRefresh: {
               threshold: 10,
               stop: 10
             },
-            pullUpLoad: true
+            pullUpLoad: {
+              threshold: 10,
+              stop: 10
+            },
           })
-          this.bscroll.on('pullingUp', () => {
-            console.log('处理上拉加载操作')
-            if(this.noMore||this.loadMore) return
-            this.loadMore = true
-            this.searchForm.pageNum++
-            this.getAllKLine(this.currentType)
-
+          // this.bscroll.on('pullingUp', () => {
+          //   console.log('处理上拉加载操作')
+          //   if(this.noMore||this.loadMore) return
+          //   this.loadMore = true
+          //   this.searchForm.pageNum++
+          //   this.getAllKLine(this.currentType)
+          //
+          // })
+          // this.bscroll.on('pullingDown', () => {
+          //   console.log('处理下拉刷新操作')
+          //   if(this.refreshing) return
+          //   this.refreshing = true
+          //   this.searchForm.pageNum = 1
+          //   this.getAllKLine(this.currentType)
+          //
+          // })
+          this.bscroll.on('scroll',(pos)=> {
+            if(pos.y>100){
+              if(this.refreshing) return
+              console.log('处理下拉刷新操作')
+              this.refreshing = true
+              this.searchForm.pageNum = 1
+              this.getAllKLine(this.currentType)
+            }
+            if(pos.y<= this.bscroll.maxScrollY + 50){
+                if(this.noMore||this.loadMore) return
+              console.log('处理上拉加载操作')
+                this.loadMore = true
+                this.searchForm.pageNum++
+                this.getAllKLine(this.currentType)
+            }
           })
-          this.bscroll.on('pullingDown', () => {
-            console.log('处理下拉刷新操作')
-            if(this.refreshing) return
-            this.refreshing = true
-            this.searchForm.pageNum = 1
-            this.getAllKLine(this.currentType)
-
-          })
-
           this.bscroll.refresh()
         })
       }else {
         this.$nextTick(()=>{
           this.bscroll.refresh()
-          this.bscroll.scrollTo(0, 0);
+          // this.bscroll.scrollTo(0, 0);
 
         })
       }
 
     },
-    getAllKLine(type='dbl') {
+    getAllKLine(type='chudbl') {
       if (this.beReady) return;
       this.currentType = type;
       if(type.indexOf('lianban')>-1){
@@ -381,10 +413,9 @@ export default {
 
 <style scoped lang="less">
   .btn-box{
-    height: 100px;
+    height: 78px;
     display: flex;
     flex-wrap: wrap;
-
     .btn-item{
       width: 27%;
       padding:  5px 10px;
@@ -394,22 +425,29 @@ export default {
     }
   }
 
-
-
 .wrapper {
-  height: calc(100% - 101px);
+  height: calc(100% - 80px);
   overflow: hidden;
   background-color: #111 ;
   .content{
     height: auto;
-    padding: 5px 0;
-    width: 100%;
-    .card-item {
-      width: 100%;
-      color: #ffffff;
-      padding: 3px 0;
-      display: inline-block;
+    padding: 0;
+    width: 150%;
+    .list-head{
+      /*position: fixed;*/
+      top:0;
+      height: 36px;
+      line-height: 36px;
+      background-color: #111111;
+    }
+    .card-list{
+      .card-item {
+        width: 100%;
+        color: #ffffff;
+        padding: 3px 0;
+        display: inline-block;
 
+      }
     }
   }
 

@@ -26,11 +26,18 @@ export default {
     })
   },
   removeRealTimePush(data) {
-
     return request({
       url: 'removeRealTimePush', // 假地址 自行替换
       method: 'post',
       data
     })
   },
+  getRealTimeList(data) {
+    return request({
+      url: 'getRealTimeList', // 假地址 自行替换
+      method: 'post',
+      data
+    })
+  },
+
 }
