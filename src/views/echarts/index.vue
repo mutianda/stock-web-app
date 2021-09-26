@@ -68,13 +68,13 @@
           v-if="shareList.length"
           style="float: left;color: #111;line-height: 50px;"
           >总共：{{ shareList.length }} 当前：{{ computeIndex + 1 }} 代码：{{
-            shareList[computeIndex].code
+            currentShare.code
           }}
-          名称：{{ shareList[computeIndex].name }}</span
+          名称：{{ currentShare.name }}</span
         >
         连扳时间
         <span
-          v-for="item in shareList[computeIndex].lianban"
+          v-for="item in currentShare.lianban"
           :key="item.time"
           >{{ item.time }}</span
         >
@@ -160,8 +160,8 @@ export default {
   methods: {
     addRealTime() {
       const data = {
-        share_code: this.shareList[this.computeIndex].code,
-        share_name: this.shareList[this.computeIndex].name,
+        share_code: this.currentShare.code,
+        share_name: this.currentShare.name,
         user_id: 1
       };
       this.$refs.realTime.openModal(data, false);
@@ -675,7 +675,14 @@ export default {
     const shareList = this.$route.params.shareList;
     const index = this.$route.params.index || 0;
     if (shareList) {
-      this.shareList = shareList;
+      this.shareList = shareList.map(item => {
+        item.qs = true;
+        item.dbqd = false;
+        item.tpzs = false;
+        item.jiasu = false;
+        item.kaishi = false;
+        return item;
+      });
       this.computeIndex = index;
       // console.log(kline);
       this.changeKline('kline')

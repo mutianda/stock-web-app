@@ -7,8 +7,13 @@
     @touchstart="mousedown"
     @touchend="mouseup"
   >
+
+    <div class="update-icon" :class="{'show-update':showUpdate}">
+      <img src="./assets/img/update.png">
+    </div>
     <main-bar class="main-bar" v-model="showMenu"  @touchend="mouseup"> </main-bar>
     <main-view class="main-view" :class="{'has-menu':showMenu}"></main-view>
+
 
   </div>
 </template>
@@ -30,7 +35,9 @@ export default {
       mouse: {
         begin: 0,
         end: 0
-      }
+      },
+      showUpdate:false
+      // imgUrl:require("./assets/img/update.png")
     };
   },
   computed:{
@@ -40,7 +47,14 @@ export default {
     }
   },
   mounted() {
-
+    window.closeApp = () => {
+      this.$message.error('退出')
+      this.$socket.emit("disconnect", { id:this.$socket.id,email: this.user.email});
+    }
+    window.openApp = () => {
+      this.$message.success('打开')
+      this.$socket.emit("login", { id:this.$socket.id,email: this.user.email});
+    }
     this.saveMenuRouter();
     if(!this.user||!this.user.email){
       this.$router.push({name:'login'})
@@ -58,6 +72,10 @@ export default {
     realTimeStock(data) {
       const tableData = data.sort((a, b) => b.f170 - a.f170);
       this.$store.commit("common/saveRealTimeTable",tableData )
+      this.showUpdate = true
+      setTimeout(()=>{
+        this.showUpdate = false
+      },1010)
 
       console.log("推送");
     },
@@ -125,7 +143,7 @@ body {
   text-align: center;
   color: #fff;
   background-color: #111111;
-  opacity: .3;
+  /*opacity: .3;*/
 }
 </style>
 <style lang="less" scoped>
@@ -149,6 +167,20 @@ body {
     bottom: 0;
     height: 50px;
     background-color: #111111;
+  }
+  .update-icon{
+    width: 40px;
+
+    text-align: right;
+    position: absolute;
+    right: 0;
+    bottom: -45px;
+    z-index: 9;
+    &.show-update{
+      transform: translateY(-1000px);
+      transition: all 2s;
+    }
+
   }
 }
 </style>

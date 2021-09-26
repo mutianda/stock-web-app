@@ -12,8 +12,18 @@
 				<i @click.stop="doLike(share)" class="el-icon-star-on" style="font-size: 22px;padding:0 4px;float: right" :style="{color:likeMap[share.code]?'#e08214':'#999'}"></i>
 
 			</div>
-			<div class="text item" v-for="it in list" :key="it.code">
-				{{ stock[it.value] }}{{it.tis||''}}
+			<div class="text item" v-for="it in list" :key="it.code" :style="it.style">
+					<span v-if="it.value=='desc'" :style="{color:stock[it.value]=='B'?'red':'green'}">
+					{{ stock[it.value] }}{{it.tis||''}}
+				</span>
+				<span v-else-if="it.value=='updown'||it.value=='breakZs'" :style="{color:stock[it.value]>0?'red':'green'}">
+					{{ stock[it.value] }}{{it.tis||''}}
+					<i :class=" stock[it.value]>0?'el-icon-top-right':'el-icon-bottom-right'" >
+					</i>
+				</span>
+				<span v-else>
+						{{ stock[it.value] }}{{it.tis||''}}
+				</span>
 			</div>
 		</div>
 	</el-card>
@@ -56,9 +66,15 @@
 		},
 		computed:{
 			stock(){
+
+				const price = this.share.like_price||this.share.last.close
+
+				const price2 = (this.share.desc=='B'?this.share.price_rise:this.share.price_down)||this.share.last.close
 				return {
 					...this.share,
-					...this.share.last
+					...this.share.last,
+					updown:((this.share.last.close-price)/price*100).toFixed(2),
+					breakZs:((this.share.last.close-price2)/price*100).toFixed(2),
 				}
 			}
 		},
@@ -118,7 +134,7 @@
 	}
 	.info-box{
 		width: 100%;
-		font-size: 10px;
+		font-size: 12px;
 		overflow-x: scroll;
 		display: flex;
 		flex-wrap: wrap;

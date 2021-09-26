@@ -14,8 +14,9 @@
     </div>
     <div class="wrapper" ref="scroll">
       <div class="content">
+<!--        :style="{'top':headerTopHeight+'px'}"-->
         <div v-if="refreshing" style="color: #FFF;text-align: left">Loading...</div>
-        <list-header :list="headerList" class="list-head"></list-header>
+          <list-header :list="headerList" class="list-head"  :style="{'transform':'translateY('+(headerTopHeight>0?headerTopHeight:0)+'px)'}" can-sort @changeSort="changeSort1"></list-header>
         <div class="card-list">
 
           <div
@@ -77,12 +78,14 @@ export default {
         {value: 'high',label:'最高',},
         {value: 'low',label:'最低',},
         {value: 'turnover',label:'换手',tis:'%'},
-        {value: 'moneyString',label:'成交量',}
+        {value: 'moneyString',label:'成交量',style:{flex:1.5}}
       ],
-
+      headerTopHeight:0,
+        sortBy:'',
+        sortType:0
     };
   },
-  activated() {
+  mounted() {
     this.getAllKLine()
   },
 
@@ -93,20 +96,32 @@ export default {
     },
     shareList() {
       const arr = this.dblList
-
         .map(item => {
           item.last.moneyString =
             item.last.money / 100000000 > 1
-              ? Math.floor(item.last.money / 100000000, 2) + "亿"
-              : Math.floor(item.last.money / 10000, 2) + "万";
+              ? (item.last.money / 100000000).toFixed(2) + "亿"
+              : (item.last.money / 10000).toFixed(2)+ "万";
 
-          return item;
+            return {...item,...item.last,}
         });
+        const sortBy = this.sortBy ||'risePrecent'
+        const sortType = this.sortType||0
+        arr.sort((a,b)=>{
+            if(sortType==0){
+                return b[sortBy]-a[sortBy]
+            }else {
+                return  a[sortBy]-b[sortBy]
+            }
 
+        });
       return arr;
     }
   },
   methods: {
+      changeSort1(sortBy,sortType){
+          this.sortBy = sortBy
+          this.sortType= sortType
+      },
     lookDetail(index) {
       this.$router.push({
         name: "echarts",
@@ -160,6 +175,14 @@ export default {
           //   this.getAllKLine(this.currentType)
           //
           // })
+          this.bscroll.on('scrollEnd',(pos)=> {
+            this.headerTopHeight = pos.y<-30?0-pos.y:0
+          })
+          this.bscroll.on('scrollStart',()=> {
+            if(this.headerTopHeight>30){
+              this.headerTopHeight = 31
+            }
+          })
           this.bscroll.on('scroll',(pos)=> {
             if(pos.y>100){
               if(this.refreshing) return
@@ -203,14 +226,7 @@ export default {
         })
         .then(res => {
           if (res.data) {
-            const dblList = res.data.list.map(item => {
-              item.qs = true;
-              item.dbqd = false;
-              item.tpzs = false;
-              item.jiasu = false;
-              item.kaishi = false;
-              return item;
-            });
+            const dblList = res.data.list
             this.searchForm.pageNum = res.data.pageNum;
             this.searchForm.pageSize = res.data.pageSize;
             this.searchForm.total = res.data.total;
@@ -413,12 +429,13 @@ export default {
 
 <style scoped lang="less">
   .btn-box{
+      width: 100%;
     height: 78px;
     display: flex;
     flex-wrap: wrap;
     .btn-item{
       width: 27%;
-      padding:  5px 10px;
+      margin:  5px 3%;
       .el-button{
         width: 100%;
       }
@@ -426,19 +443,22 @@ export default {
   }
 
 .wrapper {
-  height: calc(100% - 80px);
+  height: calc(100% - 79px);
   overflow: hidden;
   background-color: #111 ;
   .content{
     height: auto;
     padding: 0;
     width: 150%;
+    position: relative;
     .list-head{
-      /*position: fixed;*/
-      top:0;
       height: 36px;
-      line-height: 36px;
+      line-height: 28px;
       background-color: #111111;
+      transition: all .2s;
+      &.fixed{
+        position: absolute;
+      }
     }
     .card-list{
       .card-item {
