@@ -114,7 +114,7 @@
 				this.$router.push({
 					name: "echarts",
 					params: {
-						shareList: this.dblList,
+						shareList: this.shareList,
 						index
 					}
 				});
@@ -142,7 +142,6 @@
 					})
 				}else {
 					this.$nextTick(()=> {
-						this.bscroll.scrollTo(0, 0);
 						this.bscroll.refresh()
 					})
 				}

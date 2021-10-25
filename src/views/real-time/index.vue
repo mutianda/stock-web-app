@@ -116,7 +116,7 @@
         this.$router.push({
           name: "echarts",
           params: {
-            shareList: this.dblList,
+            shareList: this.shareList,
             index
           }
         });

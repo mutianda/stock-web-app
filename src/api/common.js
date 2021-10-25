@@ -54,6 +54,13 @@ export default {
       data
     });
   },
+  getShareArticles(data){
+    return request({
+      url: "getShareArticles", // 假地址 自行替换
+      method: "post",
+      data
+    });
+  }
 
 
 

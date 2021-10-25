@@ -6,6 +6,7 @@
     @mouseup="mouseup"
     @touchstart="mousedown"
     @touchend="mouseup"
+    :style="{opacity: env?'1':'.1' }"
   >
 
     <div class="update-icon" :class="{'show-update':showUpdate}">
@@ -44,6 +45,9 @@ export default {
     showMenu(){
       return this.$route.name=='macd'||this.$route.name=='search'||this.$route.name=='real-time'||this.$route.name=='like'
 
+    },
+    env(){
+      return process.env.NODE_ENV == 'production'
     }
   },
   mounted() {
@@ -143,7 +147,6 @@ body {
   text-align: center;
   color: #fff;
   background-color: #111111;
-  /*opacity: .3;*/
 }
 </style>
 <style lang="less" scoped>
@@ -163,6 +166,7 @@ body {
   }
   .main-bar{
     width: 100%;
+
     position: absolute;
     bottom: 0;
     height: 50px;
@@ -170,7 +174,6 @@ body {
   }
   .update-icon{
     width: 40px;
-
     text-align: right;
     position: absolute;
     right: 0;

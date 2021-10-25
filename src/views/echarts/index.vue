@@ -1,5 +1,6 @@
 <template>
   <div class="echarts-box">
+
     <coolModal :show.sync="showModal" title="操作" width="300px">
       <div v-if="shareList.length">
         <el-button
@@ -80,21 +81,38 @@
         >
       </div>
     </coolModal>
+
+
+    <div class="info-box">
+      <div class="info-item" v-for="(item,index) in headerList" :key="index" :style="{color:item.value== 'risePrecent'&&currentShare[item.value]<0?'green':'',...item.style}" >
+        <div class="info-label">{{item.label}}</div>
+        <div class="info-value" >{{currentShare[item.value]}}{{item.tis}}</div>
+      </div>
+    </div>
+    <div class="article-box">
+      <div class="info-item info-item1" ref="articleBox" v-if="articleList[currentArticleIndex]" :style="articleStyle">
+        <span class="info-label">{{articleList[currentArticleIndex].user_nickname}}:</span>
+        <span class="info-value">{{articleList[currentArticleIndex].post_title}}</span>
+      </div>
+    </div>
+    <div id="chart" class="echart"></div>
+
+    <div id="chart2" class="echart2"></div>
+    <div class="time-box">
+
+      <div class="btn-item" v-for="item in klineTypeList">
+
+        <el-button type="text" size="mini"
+                   :style="{color:item.value!=currentType?'green':'red'}"
+                   :key="item.value" @click="changeKline(item.value)" :disabled="buttonLoading">{{item.label}}</el-button>
+      </div>
+
+    </div>
+    <real-time-modal ref="realTime"></real-time-modal>
+
     <div class="btn-box" v-if="shareList.length">
       <div class="btn-item">
-        <el-button @click="goBack" size="mini" type="info">Back</el-button>
-      </div>
-      <div class="btn-item">
-        <el-button @click="showModal = true" size="mini" type="primary">Open</el-button>
-      </div>
-      <div class="btn-item">
-        <el-button
-                @click="preOne"
-                :disabled="shareList.length < 1 || computeIndex == 0"
-                size="mini"
-                type="success"
-        >pre</el-button
-        >
+        <el-button @click="goBack" size="mini" type="text">Back</el-button>
       </div>
       <div class="btn-item">
         <el-button
@@ -110,19 +128,22 @@
           playing ? "start" : "stop"
           }}</el-button>
       </div>
-
-
-
-    </div>
-    <div id="chart" class="echart"></div>
-    <div id="chart2" class="echart2"></div>
-    <real-time-modal ref="realTime"></real-time-modal>
-    <div class="time-box">
-      <div class="btn-item" v-for="item in klineTypeList">
-
-        <el-button type="primary" size="mini"
-                   :key="item.value" @click="changeKline(item.value)" :plain="item.value!=currentType" :disabled="buttonLoading">{{item.label}}</el-button>
+      <div class="btn-item">
+        <el-button
+                @click="preOne"
+                :disabled="shareList.length < 1 || computeIndex == 0"
+                size="mini"
+                type="success"
+        >pre</el-button
+        >
       </div>
+
+
+      <div class="btn-item">
+        <el-button @click="showModal = true" size="mini" type="primary">Open</el-button>
+      </div>
+      <i @click.stop="doLike(currentShare)" class="el-icon-star-on" style="font-size: 22px;padding:5px 4px;flex: 0.5" :style="{color:likeMap[currentShare.code]?'#e08214':'#999'}"></i>
+
     </div>
   </div>
 </template>
@@ -153,7 +174,20 @@ export default {
       ],
       currentType:'kline',
       buttonLoading:false,
-      currentShare:{}
+      currentShare:{},
+      headerList:[
+        {value: 'close',label:'现价',},
+        {value: 'risePrecent',label:'涨幅',tis:'%'},
+        {value: 'open',label:'开盘',},
+        {value: 'high',label:'最高',},
+        {value: 'low',label:'最低',},
+        {value: 'turnover',label:'换手',tis:'%'},
+        {value: 'moneyString',label:'成交量',style:{flex:2}}
+      ],
+      articleList:[],
+      currentArticleIndex:0,
+      articleStyle: {transform:'',right:'-100%'},
+      timer:null
     };
   },
   computed: {},
@@ -307,12 +341,12 @@ export default {
           },
           grid: [
             {
-              left: "5%",
+              left: "8%",
               right: "5%",
               height: "45%"
             },
             {
-              left: "5%",
+              left: "8%",
               right: "5%",
               top: "65%",
               height: "16%"
@@ -481,8 +515,18 @@ export default {
 
           yAxis: [
             {
-              type: "value"
+              type: "value",
+              axisLabel: { show: false },
             }
+          ],
+          grid: [
+            {
+              left: "3%",
+              right: "5%",
+              height: "66%",
+              top:'3%',
+              bootm:'3%'
+            },
           ],
           series: [
             {
@@ -656,14 +700,62 @@ export default {
       const shareCode = this.shareList[this.computeIndex].share_code;
       this.$_api.common.getKline({ type,shareCode }).then(res => {
         if (res.data) {
-          this.currentShare = res.data
+          this.getShareArticles( this.currentShare)
+          this.currentShare = {...res.data,...res.data.last, moneyString:res.data.last.money / 100000000 > 1
+                    ? (res.data.last.money / 100000000).toFixed(2) + "亿"
+                    : (res.data.last.money / 10000).toFixed(2)+ "万"}
+          this.getShareArticles()
           this.computedEchart(res.data);
         } else {
           this.$message.error("暂无");
         }
       });
 
-    }
+    },
+    getShareArticles(){
+      this.$_api.common.getShareArticles(this.currentShare).then(res=>{
+        console.log(res)
+        if(res.code==200){
+          this.articleList= res.data.re
+        }else {
+          this.articleList = []
+        }
+      })
+    },
+    doLike(item){
+      console.log(item);
+
+      if(this.likeMap[item.code]){
+        const data ={
+          id:this.likeMap[item.code].id
+        }
+        this.$_api.shareLike.deleteLike(data).then(res=>{
+          if(res.code==200){
+            this.$store.dispatch('common/getLikeList')
+          }
+        })
+      }else {
+        const {last,share_code,name} = item
+        const data ={
+          code:share_code,name,
+          price:last.close,
+          email:this.user.email,
+          time:(new Date()).getTime()
+        }
+        this.$_api.shareLike.addLike(data).then(res=>{
+          if(res.code==200){
+            this.$store.dispatch('common/getLikeList')
+          }
+        })
+      }
+
+
+    },
+  },
+  deactivated() {
+    clearInterval(this.timer)
+    this.timer = null
+
   },
   activated() {
     this.echart = this.$echarts.init(document.getElementById("chart"), "dark");
@@ -690,6 +782,20 @@ export default {
         this.echart.resize();
         this.echart2.resize();
       });
+      this.timer = setInterval(()=>{
+        if(this.articleList.length){
+          this.currentArticleIndex = Math.min(this.currentArticleIndex+1,this.articleList.length)
+          const screenW = document.body.clientWidth
+          this.$nextTick(()=>{
+            const w = this.$refs.articleBox.offsetWidth
+            const time = Math.min(w/30,8)
+            this.articleStyle = {transform:'',right:-w+'px'}
+            setTimeout(()=>{
+              this.articleStyle = {transform:`translateX( -${screenW+2*w}px)`, transition:'transform +'+time+'s linear',right:-w+'px'}
+            },100)
+          })
+        }
+      },8100)
     }
   },
   mounted() {}
@@ -708,13 +814,17 @@ export default {
 .echarts-box {
   width: 100%;
   background-color: black;
+  position: relative;
   .btn-box{
-    height: 50px;
+    position: absolute;
+    bottom: 0;
+    height: 40px;
+    width: 100%;
     display: flex;
     flex-wrap: wrap;
     .btn-item{
       width: 15%;
-      padding:  5px 5px;
+      padding:  5px 1px;
       .el-button{
         width: 100%;
       }
@@ -728,11 +838,9 @@ export default {
   .echart2 {
 
     width: 100%;
-    height: 180px;
+    height: 100px;
   }
   .time-box{
-    position: absolute;
-    bottom: 0;
     height: 30px;
     width: 100%;
     display: flex;
@@ -741,6 +849,37 @@ export default {
       flex: 1;
       .el-button{
         width: 100%;
+      }
+    }
+  }
+  .info-box{
+    height: 35px;
+    padding: 2px;
+    display: flex;
+    font-size: 10px;
+    color: #dc2929;
+    .info-item{
+      flex: 1;
+    }
+  }
+  .article-box{
+    height: 35px;
+    padding: 2px;
+    font-size: 14px;
+    position:relative ;
+    .info-item{
+      position: absolute;
+      &.info-item1 {
+        top:2px
+      }
+      &.info-item2 {
+        top:32px
+      }
+      .info-value{
+        color: #fff;
+      }
+      .info-label{
+        color: #a00202;
       }
     }
   }

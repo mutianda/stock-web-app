@@ -41,7 +41,13 @@ const menuRouter = [
     hidePage: true,
     component: () => import("@v/echarts")
   },
-
+  {
+    path: "/test",
+    name: "test",
+    title: "test",
+    hidePage: true,
+    component: () => import("@v/test.vue")
+  },
 
 
 ];
